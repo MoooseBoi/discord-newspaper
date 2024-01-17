@@ -10,11 +10,6 @@ load_dotenv()
 
 
 hn_pattern = re.compile(r'<p>Points: (\d+)</p>')
-feed_colors = {
-    "reddit": 0xff4500,
-    "hacker_news": 0xff3300
-}
-
 
 def get_hn_embed(query=""):
     url = "https://hnrss.org/frontpage"
