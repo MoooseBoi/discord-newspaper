@@ -1,33 +1,45 @@
 import os
-import discord
-from discord.ext import commands, tasks
+import re
 import datetime
 import feedparser
-from dotenv import load_dotenv
+import discord
+from discord.ext import commands, tasks
 
+from dotenv import load_dotenv
 load_dotenv()
 
 
-def get_hn_feed(query=None):
+hn_pattern = re.compile(r'<p>Points: (\d+)</p>')
+feed_colors = {
+    "reddit": 0xff4500,
+    "hacker_news": 0xff3300
+}
+
+
+def get_hn_embed(query=""):
     url = "https://hnrss.org/frontpage"
-    if query is not None:
+    if query != "":
         url += f"?q={query}"
 
     feed = feedparser.parse(url)
 
-    # evaluate all results
-    # find and return highest 3
-
+    points = []
     for article in feed.entries:
-        pass
+        points.append((article, int(hn_pattern.findall(article["summary"])[0])))
 
+    results = sorted(points, key=(lambda entry: entry[1]), reverse=True)[:5]
+    articles = [result[0] for result in results]
 
-def get_reddit_feed(subreddit):
-    url = ""  # rss feed of given subreddit url
+    title = f"Hacker news {query}"
+    embed = discord.Embed(title=title, color=0xff3300)
 
-    # get new entries
-    # evaluate entries by popularity
-    # find and return top 3
+    for article in articles:
+        link = f"[article]({article.link})"
+        comments = f"[comment section]({article.comments})"
+
+        embed.add_field(inline=False, name=article.title, value=f"{link} | {comments}")
+
+    return embed
 
 
 def main():
@@ -38,9 +50,6 @@ def main():
     # - reddit
     # - hacker news
     # - add more here :3
-
-    # cronjob for grabbing the newest feeds every morning:
-    #   get top posts from each feed
 
     intents = discord.Intents.default()
     intents.message_content = True
@@ -53,19 +62,11 @@ def main():
     @bot.command(name="feed")
     async def feed(context, *args):
         # experimental command to test feed
-
-        feed_embed = discord.Embed(title="<Feed name>")
-        for i in range(3):
-            feed_embed.add_field(inline=False, name=f"{i + 1}. <Title>", value="<summary>\n<link>")
-
-        await context.channel.send(embed=feed_embed)
+        news_channel = bot.get_channel(int(os.getenv("NEWS_CH_ID")))
+        await news_channel.send(embed=get_hn_embed())
 
     @tasks.loop(time=datetime.time(hour=8, minute=0))
     async def daily_feed():
-        # get top 3 result of each feed in feeds file
-        # create embed for each feed
-        # send all embeds in #news channel (os.getenv("news_id"))
-
         pass
 
     bot.run(os.getenv("TOKEN"))
