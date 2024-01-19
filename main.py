@@ -10,6 +10,7 @@ load_dotenv()
 
 
 hn_pattern = re.compile(r'<p>Points: (\d+)</p>')
+news_channels = set()
 
 
 def get_hn_embed(query=""):
@@ -41,17 +42,29 @@ def get_hn_embed(query=""):
 def main():
     intents = discord.Intents.default()
     intents.message_content = True
-    bot = commands.Bot(command_prefix="!", intents=intents)
+    bot = commands.Bot(command_prefix="n!", intents=intents)
 
     @bot.event
     async def on_ready():
         print(f"{bot.user} online")
         daily_feed.start()
 
-    @tasks.loop(time=datetime.time(hour=12, tzinfo=datetime.timezone.utc))
+    @bot.command(name="add")
+    async def add_channel(ctx):
+        news_channels.add(ctx.channel.id)
+        print("added ", ctx.channel.id)
+
+    @bot.command(name="rmv")
+    async def remove_channel(ctx):
+        news_channels.remove(ctx.channel.id)
+
+    @tasks.loop(time=datetime.time(hour=6, minute=30, second=30, tzinfo=datetime.timezone.utc))
     async def daily_feed():
-        news_channel = bot.get_channel(int(os.getenv("NEWS_CH_ID")))
-        await news_channel.send(embed=get_hn_embed())
+        embed = get_hn_embed()
+
+        for id in news_channels:
+            channel = bot.get_channel(id)
+            await channel.send(embed=embed)
 
     bot.run(os.getenv("TOKEN"))
 
