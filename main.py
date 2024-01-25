@@ -1,42 +1,29 @@
 import os
-import re
 import datetime
-import feedparser
 import discord
 from discord.ext import commands, tasks
+import importlib
 
 from dotenv import load_dotenv
 load_dotenv()
 
 
-hn_pattern = re.compile(r'<p>Points: (\d+)</p>')
 news_channels = set()
 
 
-def get_hn_embed(query=""):
-    url = "https://hnrss.org/frontpage"
-    if query != "":
-        url += f"?q={query}"
+def get_feed_embeds():
+    handles = os.listdir("handles")
+    embeds = []
 
-    feed = feedparser.parse(url)
+    for handle in handles:
+        module = f"handles.{handle.replace('.py', '')}"
+        try:
+            embed = importlib.import_module(module).get_embed()
+            embeds.append(embed)
+        except AttributeError:
+            continue
 
-    points = []
-    for article in feed.entries:
-        points.append((article, int(hn_pattern.findall(article["summary"])[0])))
-
-    results = sorted(points, key=(lambda entry: entry[1]), reverse=True)[:5]
-    articles = [result[0] for result in results]
-
-    title = f"Hacker news {query}"
-    embed = discord.Embed(title=title, color=0xff3300)
-
-    for article in articles:
-        link = f"[article]({article.link})"
-        comments = f"[comment section]({article.comments})"
-
-        embed.add_field(inline=False, name=article.title, value=f"{link} | {comments}")
-
-    return embed
+    return embeds
 
 
 def main():
@@ -58,13 +45,22 @@ def main():
     async def remove_channel(ctx):
         news_channels.remove(ctx.channel.id)
 
-    @tasks.loop(time=datetime.time(hour=6, minute=30, second=30, tzinfo=datetime.timezone.utc))
-    async def daily_feed():
-        embed = get_hn_embed()
+    @bot.command(name="feed")
+    async def daily_feed_command(ctx):
+        embeds = get_feed_embeds()
 
-        for id in news_channels:
-            channel = bot.get_channel(id)
-            await channel.send(embed=embed)
+        for embed in embeds:
+            await ctx.channel.send(embed=embed)
+
+    @tasks.loop(time=datetime.time(hour=12, tzinfo=datetime.timezone.utc))
+    async def daily_feed():
+        embeds = get_feed_embeds()
+
+        for embed in embeds:
+            # initialize channels seperately (lazy load?)
+            for id in news_channels:
+                channel = bot.get_channel(id)
+                await channel.send(embed=embed)
 
     bot.run(os.getenv("TOKEN"))
 
