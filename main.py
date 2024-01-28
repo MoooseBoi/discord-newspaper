@@ -11,6 +11,7 @@ load_dotenv()
 news_channels = set()
 
 
+# flawed import logic
 def get_feed_embeds():
     handles = os.listdir("handles")
     embeds = []
