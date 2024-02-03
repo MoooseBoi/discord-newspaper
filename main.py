@@ -45,8 +45,7 @@ def main():
             embed = discord.Embed().add_field(name="Farewell", value=f"Goodbye, #{ctx.channel.name}!")
         except KeyError:
             embed = discord.Embed().add_field(name="Error", value=f"#{ctx.channel.name} is not subscribed.")
-        finally:
-            await ctx.channel.send(embed=embed)
+        await ctx.channel.send(embed=embed)
 
     @bot.command(name="add")
     async def add(ctx, *args):
