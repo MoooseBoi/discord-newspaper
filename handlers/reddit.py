@@ -1,25 +1,45 @@
+import os
 import praw
+from prawcore import NotFound
 import discord
 
+from dotenv import load_dotenv
 
-def get_embed():
-    SUBREDDIT = "worldnews"
-    POST_COUNT = 5
+load_dotenv()
 
-    reddit = praw.Reddit(client_id='OCR3d4pvMUxMQ_FCmvpqkg',
-                         client_secret='Xdn0LiW8bM6VE-2xKSOFdJcz-1MEOw',
-                         user_agent='discord-news-bot-rddit-handler by /u/vorkutavorkutlag')
+reddit = praw.Reddit(
+            client_id=os.getenv("REDDIT_CLIENT_ID"),
+            client_secret=os.getenv("REDDIT_SECRET"),
+            user_agent=os.getenv("REDDIT_USER_AGENT")
+    )
 
-    subreddit = reddit.subreddit(SUBREDDIT)
 
-    hot_posts = subreddit.hot(limit=POST_COUNT)
-    hot_posts = sorted(hot_posts, key=lambda hotpost: hotpost.score, reverse=True)
+def get_embed(sub_name):
+    subreddit = reddit.subreddit(sub_name[2:])
 
-    embed = discord.Embed(title="World News", color=0x4f86c9)
+    posts = subreddit.hot(limit=5)
+    posts = sorted(posts, key=lambda post: post.score, reverse=True)
 
-    for post in hot_posts:
+    embed = discord.Embed(title=f"{sub_name}", color=0x4f86c9)
+
+    for post in posts:
         link = f"[post](https://www.reddit.com{post.permalink})"
 
         embed.add_field(inline=False, name=post.title, value=f"{link} | Upvotes: {post.score}")
 
     return embed
+
+
+def sub_exists(sub):
+    exists = True
+    try:
+        reddit.subreddits.search_by_name(sub, exact=True)
+    except NotFound:
+        exists = False
+    return exists
+
+
+def verify_args(args):
+    if len(args) != 2:
+        return False
+    return sub_exists(args[1])
