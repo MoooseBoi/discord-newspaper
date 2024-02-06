@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  bot:
+    build: 
+      context: ./bot
+      #    image: "newspaper-bot"
+      #container_name: "newspaper_bot"
+  
+  scraper:
+    build: 
+      context: ./scraper
+      #image: "newspaper-scraper"
+      #container_name: "newspaper_scraper"
