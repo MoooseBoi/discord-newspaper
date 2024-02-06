@@ -2,12 +2,7 @@ import os
 import datetime
 import discord
 from discord.ext import commands, tasks
-import importlib
-import handlers
-
-from dotenv import load_dotenv
-
-load_dotenv()
+import kafka
 
 channels = {}
 
@@ -55,42 +50,8 @@ def main():
         # send result embed
         # Exception: Unsupported handler => wrong handler message
         # Exception: wrong args => args error message
-        try:
-            if not handlers.handle_exists(args[0]):
-                embed = discord.Embed().add_field(name="Unsupported Handler",
-                                                  value=f"{args[0]}'s API is unsupported.")
-                await ctx.channel.send(embed=embed)
-                return
 
-            handler = importlib.import_module(f"handlers.{args[0]}")
-
-            if not handler.verify_args(args):
-                embed = discord.Embed().add_field(name="Bad Argument",
-                                                  value=f"Bad argument for {args[0]}!")
-                await ctx.channel.send(embed=embed)
-                return
-
-            if len(args) == 1:
-                channels[ctx.channel.id][args[0]] = True
-                embed = discord.Embed().add_field(
-                    name="Success", value=f"Succesfully subscribed to {args[0]}")
-
-            else:
-
-                if args[0] in channels[ctx.channel.id].keys():
-                    channels[ctx.channel.id][args[0]].add(args[1])
-                else:
-                    channels[ctx.channel.id][args[0]] = {args[1]}
-                embed = discord.Embed().add_field(
-                    name="Success", value=f"Subscribed to {args[0]}'s {args[1]}")
-
-        except KeyError or IndexError:
-            embed = discord.Embed().add_field(
-                name="Error Occurred",
-                value="Couldn't subscribe. Are you sure you initialised? ('n!init') | "
-                      "Write 'n!help' for available commands.")
-
-        await ctx.channel.send(embed=embed)
+        pass
 
     @bot.command(name="remove")  # Unsubscribe
     async def remove(ctx, *args):
@@ -128,17 +89,11 @@ def main():
 
     @bot.command(name="feed")
     async def daily_feed_command(ctx):
-        embeds = handlers.get_embeds(channels[ctx.channel.id])
-        for embed in embeds:
-            await ctx.channel.send(embed=embed)
+        pass
 
     @tasks.loop(time=datetime.time(hour=12, tzinfo=datetime.timezone.utc))
     async def daily_feed():
-
-        for channel in channels.keys(): # initialize channels seperately (lazy load?)
-            embeds = handlers.get_embeds(channels[channel.id])
-            for embed in embeds:
-                await channel.send(embed=embed)
+        pass
 
     bot.run(os.getenv("TOKEN"))
 

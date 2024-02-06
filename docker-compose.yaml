@@ -3,11 +3,16 @@ services:
   bot:
     build: 
       context: ./bot
-      #    image: "newspaper-bot"
-      #container_name: "newspaper_bot"
+    image: newspaper-bot
+    container_name: "newspaper-bot"
+    environment:
+    - TOKEN=MTE5NjkwMTMwMDI0NDMyNDQxMw.GnLDWJ.l_2-yApbE_9Kn9eKuOj2DCb6NnQULJh7iWGz6o
+    - REDDIT_CLIENT_ID=OCR3d4pvMUxMQ_FCmvpqkg
+    - REDDIT_SECRET=Xdn0LiW8bM6VE-2xKSOFdJcz-1MEOw
+    - REDDIT_USER_AGENT=discord-news-bot-rddit-handler by /u/vorkutavorkutlag
   
   scraper:
     build: 
       context: ./scraper
-      #image: "newspaper-scraper"
-      #container_name: "newspaper_scraper"
+    image: newspaper-scraper
+    container_name: "newspaper-scraper"
