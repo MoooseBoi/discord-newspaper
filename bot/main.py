@@ -2,7 +2,6 @@ import os
 import datetime
 import discord
 from discord.ext import commands, tasks
-import kafka
 
 channels = {}
 

@@ -1,14 +1,11 @@
 import os
-from kafka import KafkaConsumer
+import pika
 
 
 def main():
-    consumer = KafkaConsumer(os.getenv("REQUEST_TOPIC"))
-
-    for request in consumer:
-        print(request)
-
-        # add handler logic here
+    print("active")
+    while True:
+        pass
 
 
 if __name__ == "__main__":

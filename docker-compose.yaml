@@ -1,18 +1,50 @@
 version: "3.8"
 services:
   bot:
-    build: 
-      context: ./bot
+    build: ./bot
     image: newspaper-bot
     container_name: "newspaper-bot"
+
     environment:
-    - TOKEN=
-    - REDDIT_CLIENT_ID=
-    - REDDIT_SECRET=
-    - REDDIT_USER_AGENT=
-  
+      - TOKEN=MTE5NjkwMTMwMDI0NDMyNDQxMw.G7HCZw.2vclAO0NEB4YT1Ncf-5ud8YFaQ1a6sDMc2jTT0
+      - REDDIT_CLIENT_ID=
+      - REDDIT_SECRET=
+      - REDDIT_USER_AGENT=
+
+    networks:
+      newspaper-local:
+        ipv4_address: 10.0.0.2
+
   scraper:
-    build: 
-      context: ./scraper
+    build: ./scraper
     image: newspaper-scraper
     container_name: "newspaper-scraper"
+
+    environment:
+      - REQ_CHANNEL=
+      - REP_CHANNEL=
+
+    networks:
+      newspaper-local:
+        ipv4_address: 10.0.0.3
+
+  rabbitmq:
+    image: rabbitmq:3.10.6-management-alpine
+    container_name: rabbitmq
+
+    hostname: my-rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+
+    networks:
+      newspaper-local:
+        ipv4_address: 10.0.0.4
+
+networks:
+  newspaper-local:
+    ipam:
+      driver: default
+      config:
+      - subnet: 10.0.0.0/24
+        gateway: 10.0.0.1
