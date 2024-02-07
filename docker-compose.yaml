@@ -6,7 +6,7 @@ services:
     container_name: "newspaper-bot"
 
     environment:
-      - TOKEN=MTE5NjkwMTMwMDI0NDMyNDQxMw.G7HCZw.2vclAO0NEB4YT1Ncf-5ud8YFaQ1a6sDMc2jTT0
+      - TOKEN=
       - REDDIT_CLIENT_ID=
       - REDDIT_SECRET=
       - REDDIT_USER_AGENT=
